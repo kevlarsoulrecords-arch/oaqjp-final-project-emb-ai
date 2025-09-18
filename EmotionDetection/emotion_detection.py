@@ -1,4 +1,4 @@
-# emotion_detection.py  (Task 3)
+# emotion_detection.py  (Task 7)
 import requests
 import json
 
@@ -10,21 +10,37 @@ HEADERS = {
 }
 
 def emotion_detector(text_to_analyze: str) -> dict:
-    """Call Watson Emotion model and return formatted dict with dominant emotion."""
+    """Call Watson Emotion model and return formatted dict with dominant emotion.
+       If the service returns 400 (blank/invalid input), return all Nones."""
     payload = {"raw_document": {"text": text_to_analyze}}
-    resp = requests.post(URL, headers=HEADERS, json=payload, timeout=30)
+
+    # Make the call
+    try:
+        resp = requests.post(URL, headers=HEADERS, json=payload, timeout=30)
+    except requests.RequestException:
+        # Network or transport error -> treat like invalid
+        return {
+            "anger": None, "disgust": None, "fear": None, "joy": None, "sadness": None,
+            "dominant_emotion": None,
+        }
+
+    # Task 7 requirement: use status_code to detect blank/invalid input
+    if resp.status_code == 400:
+        return {
+            "anger": None, "disgust": None, "fear": None, "joy": None, "sadness": None,
+            "dominant_emotion": None,
+        }
+
     resp.raise_for_status()
     data = resp.json()  # Watson returns JSON
 
-    # Extract scores (model returns a list with one prediction object)
     emo = data["emotionPredictions"][0]["emotion"]
-
     out = {
-        "anger":   float(emo.get("anger", 0)),
-        "disgust": float(emo.get("disgust", 0)),
-        "fear":    float(emo.get("fear", 0)),
-        "joy":     float(emo.get("joy", 0)),
-        "sadness": float(emo.get("sadness", 0)),
+        "anger": float(emo.get("anger", 0.0)),
+        "disgust": float(emo.get("disgust", 0.0)),
+        "fear": float(emo.get("fear", 0.0)),
+        "joy": float(emo.get("joy", 0.0)),
+        "sadness": float(emo.get("sadness", 0.0)),
     }
     out["dominant_emotion"] = max(out, key=out.get)
     return out

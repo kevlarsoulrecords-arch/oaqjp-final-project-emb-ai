@@ -13,7 +13,7 @@ def home():
 
 @app.route("/emotionDetector", methods=["GET", "POST"])
 def emotion_endpoint():
-    """Accept GET (from mywebscript.js) and POST (manual/curl)"""
+    """Accept GET (from mywebscript.js) and POST (manual/curl)."""
     text = ""
     if request.method == "GET":
         # mywebscript.js sends ?textToAnalyze=...
@@ -26,9 +26,16 @@ def emotion_endpoint():
             text = (request.form.get("textToAnalyze") or request.form.get("text") or "").strip()
 
     if not text:
-        return jsonify(error="Text is required."), 400
+        # Optional: make the blank-input case match the lab’s message too
+        return "Invalid text! Please try again!", 400
 
     result = emotion_detector(text)
+
+
+    # ✅ Task 7 requirement: if the model signals invalid/blank by returning None
+    if result.get("dominant_emotion") is None:
+        return "Invalid text! Please try again!", 400
+
     return jsonify(result), 200
 
 
