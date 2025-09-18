@@ -1,4 +1,4 @@
-# emotion_detection.py  (Task 2)
+# emotion_detection.py  (Task 3)
 import requests
 import json
 
@@ -9,8 +9,22 @@ HEADERS = {
     "Accept": "application/json",
 }
 
-def emotion_detector(text_to_analyze: str) -> str:
-    """Call Watson EmotionPredict and return the RAW JSON TEXT."""
+def emotion_detector(text_to_analyze: str) -> dict:
+    """Call Watson Emotion model and return formatted dict with dominant emotion."""
     payload = {"raw_document": {"text": text_to_analyze}}
     resp = requests.post(URL, headers=HEADERS, json=payload, timeout=30)
-    return resp.text  # Task 2 specifically asks for .text (raw JSON string)
+    resp.raise_for_status()
+    data = resp.json()  # Watson returns JSON
+
+    # Extract scores (model returns a list with one prediction object)
+    emo = data["emotionPredictions"][0]["emotion"]
+
+    out = {
+        "anger":   float(emo.get("anger", 0)),
+        "disgust": float(emo.get("disgust", 0)),
+        "fear":    float(emo.get("fear", 0)),
+        "joy":     float(emo.get("joy", 0)),
+        "sadness": float(emo.get("sadness", 0)),
+    }
+    out["dominant_emotion"] = max(out, key=out.get)
+    return out
