@@ -1,5 +1,6 @@
 """Flask web for Emotion Detection (Task 6–7)."""
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request  # pylint: disable=import-error
+
 # import the function you exposed in EmotionDetection/__init__.py
 from EmotionDetection import emotion_detector
 
@@ -8,7 +9,9 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 
 @app.get("/")
 def home():
+    """Render the index page."""
     return render_template("index.html")
+
 
 
 @app.route("/emotionDetector", methods=["GET", "POST"])
@@ -40,7 +43,8 @@ def emotion_endpoint():
 
 
 @app.errorhandler(404)
-def not_found(_e):
+def not_found(_error):
+    """Return JSON payload for 404 Not Found."""
     return jsonify(error="Not found"), 404
 
 
